@@ -5,10 +5,10 @@ import Testing
     // Write your test here and use APIs like `#expect(...)` to check expected conditions.
 	
 	let lyric = try await LRCGet.shared.getLyrics(
-		trackName: "I Want to Live",
-		artistName: "Borislav Slavov",
-		albumName: "Baldur's Gate 3 (Original Game Soundtrack)",
-		duration: 233
+		trackName: "Immortals",
+		artistName: "Fall Out Boy",
+		albumName: "Big Hero 6 (Original Motion Picture Soundtrack)",
+		duration: 195
 	)
 	print(lyric)
 }

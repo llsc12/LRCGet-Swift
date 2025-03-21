@@ -86,7 +86,14 @@ public struct LRCGet: Sendable {
 		urlComponents.queryItems = queryParams
 		let url = urlComponents.url!.appendingPathComponent(path)
 		let data = try await session.data(from: url).0
-		return try Self.decoder.decode(T.self, from: data)
+		do {
+			let value = try Self.decoder.decode(T.self, from: data)
+			return value
+		} catch {
+			print("[LRCLib]", error)
+			print(String(data: data, encoding: .utf8) ?? "No data")
+			throw error
+		}
 	}
 	
 	static let lrclibURL = URL(string: "https://lrclib.net/")!
