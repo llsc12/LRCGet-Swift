@@ -4,13 +4,19 @@
 import Foundation
 
 public struct LRCGet: Sendable {
-	public init(_ session: URLSession = .shared) { self.session = session }
+	public init(
+		_ session: URLSession = .shared,
+		url: URL = URL(string: "https://lrclib.net/")!
+	) {
+		self.session = session
+		self.lrclibURL = url
+	}
 	public static let shared = LRCGet()
-	
+
 	static let decoder = JSONDecoder()
-	
+
 	public let session: URLSession
-	
+
 	/// Get lyrics with a track's signature
 	///
 	/// Attempt to find the best match of lyrics for the track. You should provide as much information as you can about the track, including the track name, artist name, album name, and the track's duration in seconds.
@@ -29,14 +35,16 @@ public struct LRCGet: Sendable {
 		albumName: String? = nil,
 		duration: Int? = nil
 	) async throws -> Lyric {
-		try await send("/api/get", [
-			"track_name": trackName,
-			"artist_name": artistName,
-			"album_name": albumName,
-			"duration": duration.map(String.init) ?? ""
-		])
+		try await send(
+			"/api/get",
+			[
+				"track_name": trackName,
+				"artist_name": artistName,
+				"album_name": albumName,
+				"duration": duration.map(String.init) ?? "",
+			])
 	}
-	
+
 	/// Get lyrics by LRCLIB's ID
 	///
 	/// Get a lyrics record by an absolute ID. ID of a lyrics record can be retrieved from other APIs, such as /api/search API.
@@ -44,10 +52,10 @@ public struct LRCGet: Sendable {
 	/// - Parameters
 	///   - id: ID of the lyrics record
 	///   - Returns: The lyrics of the song
-	func getLyrics(id: Int) async throws -> Lyric {
+	public func getLyrics(id: Int) async throws -> Lyric {
 		try await send("/api/get/\(id)", [:])
 	}
-	
+
 	/// Search for lyrics records
 	///
 	/// Search for lyrics records using keywords. This API returns an array of lyrics records that match the specified search condition(s).
@@ -66,23 +74,30 @@ public struct LRCGet: Sendable {
 	///  - artistName: Search for keyword in track's artist name
 	///  - albumName: Search for keyword in track's album name
 	///  - Returns: The lyrics of the song
-	func search(
+	public func search(
 		q: String? = nil,
 		trackName: String? = nil,
 		artistName: String? = nil,
 		albumName: String? = nil
 	) async throws -> [Lyric] {
-		try await send("/api/search", [
-			"q": q,
-			"track_name": trackName,
-			"artist_name": artistName,
-			"album_name": albumName
-		])
+		try await send(
+			"/api/search",
+			[
+				"q": q,
+				"track_name": trackName,
+				"artist_name": artistName,
+				"album_name": albumName,
+			])
 	}
-	
-	func send<T: Codable>(_ path: String, _ q: [String: String?]) async throws -> T {
-		let queryParams: [URLQueryItem] = q.map { URLQueryItem(name: $0.key, value: $0.value) }
-		var urlComponents = URLComponents(url: Self.lrclibURL, resolvingAgainstBaseURL: false)!
+
+	func send<T: Codable>(_ path: String, _ q: [String: String?]) async throws
+		-> T
+	{
+		let queryParams: [URLQueryItem] = q.map {
+			URLQueryItem(name: $0.key, value: $0.value)
+		}
+		var urlComponents = URLComponents(
+			url: lrclibURL, resolvingAgainstBaseURL: false)!
 		urlComponents.queryItems = queryParams
 		let url = urlComponents.url!.appendingPathComponent(path)
 		let data = try await session.data(from: url).0
@@ -95,6 +110,6 @@ public struct LRCGet: Sendable {
 			throw error
 		}
 	}
-	
-	static let lrclibURL = URL(string: "https://lrclib.net/")!
+
+	let lrclibURL: URL
 }
