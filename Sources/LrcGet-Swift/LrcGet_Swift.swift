@@ -41,7 +41,7 @@ public struct LRCGet: Sendable {
 				"track_name": trackName,
 				"artist_name": artistName,
 				"album_name": albumName,
-				"duration": duration.map(String.init) ?? "",
+				"duration": duration.map(String.init),
 			])
 	}
 
@@ -93,17 +93,23 @@ public struct LRCGet: Sendable {
 	func send<T: Codable>(_ path: String, _ q: [String: String?]) async throws
 		-> T
 	{
-		let queryParams: [URLQueryItem] = q.map {
-			URLQueryItem(name: $0.key, value: $0.value)
+		let queryParams: [URLQueryItem] = q.compactMap { key, value in
+			value.map { URLQueryItem(name: key, value: $0) }
 		}
 		var urlComponents = URLComponents(
 			url: lrclibURL, resolvingAgainstBaseURL: false)!
-		urlComponents.queryItems = queryParams
+		urlComponents.queryItems = queryParams.isEmpty ? nil : queryParams
 		let url = urlComponents.url!.appendingPathComponent(path)
-		let data = try await session.data(from: url).0
+		let (data, response) = try await session.data(from: url)
+		if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+			throw LRCGetError(
+				statusCode: http.statusCode,
+				response: try? Self.decoder.decode(ErrorResponse.self, from: data)
+			)
+		}
+
 		do {
-			let value = try Self.decoder.decode(T.self, from: data)
-			return value
+			return try Self.decoder.decode(T.self, from: data)
 		} catch {
 			print("[LRCLib]", error)
 			print(String(data: data, encoding: .utf8) ?? "No data")

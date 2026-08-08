@@ -18,11 +18,15 @@ let package = Package(
             name: "LrcGet-Swift",
             targets: ["LrcGet-Swift"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/jpsim/Yams", from: "5.0.0"),
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "LrcGet-Swift"),
+            name: "LrcGet-Swift",
+            dependencies: ["Yams"]),
         .testTarget(
             name: "LrcGet-SwiftTests",
             dependencies: ["LrcGet-Swift"]
