@@ -13,7 +13,7 @@ public struct Lyric: Codable {
 	public let trackName: String
 	public let artistName: String
 	public let albumName: String
-	public let duration: Int
+	public let duration: Double?
 	public let instrumental: Bool
 	public let plainLyrics: String?
 	public let syncedLyrics: String?
